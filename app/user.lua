@@ -7,6 +7,6 @@
 --
 local m = require("services")
 
-print "Hello from user.lua"
+m.respons.body = "Hello from user.lua"
 
 m.res("Hello World!")

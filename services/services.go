@@ -9,6 +9,8 @@ func Loader(L *lua.LState) int {
 	// register functions to the table
 	mod := L.SetFuncs(L.NewTable(), exports)
 
+	L.SetGlobal("response", L.NewTable())
+
 	// returns the module
 	L.Push(mod)
 

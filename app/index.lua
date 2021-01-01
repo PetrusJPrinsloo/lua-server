@@ -1,6 +1,6 @@
 --
 -- Created by IntelliJ IDEA.
--- User: petru
+-- User: petrus
 -- Date: 2021/01/01
 -- Time: 09:10
 -- To change this template use File | Settings | File Templates.
@@ -8,6 +8,10 @@
 
 local m = require("services")
 
-print "Hello from index"
+local b = "<h1>Hello There</h1>" ..
+        "<p>here's a paragraph</p>" ..
+        "<button>Button</button>"
 
-m.res("Hello World!\n")
+response = {
+    body = b
+}
