@@ -6,8 +6,6 @@
 -- To change this template use File | Settings | File Templates.
 --
 
-
-
 local m = require("services")
 
 print "Hello from index"
