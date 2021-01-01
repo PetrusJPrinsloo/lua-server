@@ -1,39 +1,39 @@
 package modules
 
 import (
-	"fmt"
+	"github.com/PetrusJPrinsloo/lua-server/route"
+	"github.com/PetrusJPrinsloo/lua-server/server"
 	"github.com/yuin/gopher-lua"
-	"net/http"
 )
 
 func Loader(L *lua.LState) int {
 	// register functions to the table
 	mod := L.SetFuncs(L.NewTable(), exports)
-	// register other stuff
-	//L.SetField(mod, "name", lua.LString("value"))
 
-	http.HandleFunc("/", index)
+	// register other stuff
+	L.SetGlobal("routes", L.NewTable())
 
 	// returns the module
 	L.Push(mod)
 
-	fmt.Println("Listening on port 8080")
-	err := http.ListenAndServe(":8080", nil)
-	if err != nil {
-		fmt.Println(err)
-	}
 	return 1
 }
 
-func index(w http.ResponseWriter, r *http.Request) {
-	fmt.Printf("Req: %s %s\n", r.Host, r.URL.Path)
-}
-
+//All the function to be exposed in Lua
 var exports = map[string]lua.LGFunction{
-	"myfunc": myfunc,
+	"startServer": startServer,
 }
 
-func myfunc(L *lua.LState) int {
-	fmt.Println("Hello World!")
+var Routes []route.Route
+
+func startServer(L *lua.LState) int {
+
+	//fmt.Printf("%#v\n", L.GetField("routes"))
+	global := L.GetGlobal("routes").(*lua.LTable)
+	global.ForEach(func(key lua.LValue, value lua.LValue) {
+		Routes = append(Routes, route.Route{Path: value.String(), File: key.String() + ".lua"})
+	})
+
+	server.Start(L.ToString(1), Routes)
 	return 0
 }
