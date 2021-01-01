@@ -12,6 +12,4 @@ local b = "<h1>Hello There</h1>" ..
         "<p>here's a paragraph</p>" ..
         "<button>Button</button>"
 
-response = {
-    body = b
-}
+response.body = b

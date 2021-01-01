@@ -20,6 +20,13 @@ m.startServer('8080')
 
 Then for the `/user` route create a file `app/user.lua` and that file will be executed when that endpoint is hit:
 ```lua
-print("Hello World")
--- do whatever...
+local m = require("services")
+
+local b = "<h1>Hello There</h1>" ..
+        "<p>here's a paragraph</p>" ..
+        "<button>Button</button>"
+
+response.body = b
 ```
+
+The `response.body` can be set to any string and this will be sent to the browser as html. 
