@@ -54,8 +54,32 @@ func Start(port string, routes []route.Route) {
 	log.Fatal(http.ListenAndServe(":"+port, nil))
 }
 
+func doFile(w http.ResponseWriter, L *lua.LState, route route.Route) {
+	err := L.DoFile("app/" + route.File)
+	if err != nil {
+		log.Printf(err.Error())
+	}
+	global := L.GetGlobal("response").(*lua.LTable)
+	fmt.Fprintf(w, "%s", global.RawGetString("body").String())
+}
+
 func doPost(w http.ResponseWriter, r *http.Request, L *lua.LState, route route.Route) {
 
+	table := L.NewTable()
+
+	if err := r.ParseForm(); err != nil {
+		log.Printf("ParseForm() err: %v", err)
+		return
+	}
+
+	for key, value := range r.Form {
+		value := value
+		//fmt.Fprintf(w, "key = %s, value = %s\n", key, value)
+		table.RawSetString(key, lua.LString(value[0]))
+	}
+	L.SetGlobal("POST_DATA", table)
+
+	doFile(w, L, route)
 }
 
 func doPut(w http.ResponseWriter, r *http.Request, L *lua.LState, route route.Route) {
@@ -63,12 +87,7 @@ func doPut(w http.ResponseWriter, r *http.Request, L *lua.LState, route route.Ro
 }
 
 func doGet(w http.ResponseWriter, r *http.Request, L *lua.LState, route route.Route) {
-	err := L.DoFile("app/" + route.File)
-	if err != nil {
-		log.Printf(err.Error())
-	}
-	global := L.GetGlobal("response").(*lua.LTable)
-	fmt.Fprintf(w, "%s", global.RawGetString("body").String())
+	doFile(w, L, route)
 }
 
 func doDelete(w http.ResponseWriter, r *http.Request, L *lua.LState, route route.Route) {

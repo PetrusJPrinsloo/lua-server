@@ -9,19 +9,24 @@ local m = require("services")
 mysql = require('mysql')
 
 function get()
-    c = mysql.new()
-    ok, err = c:connect({ host = '127.0.0.1', port = 3306, database = 'test', user = 'lua', password = '@Test1234' })
-    if ok then
-        res, err = c:query('SELECT * FROM user')
-        for key, value in pairs(res) do
-            print(value.name)
-            print(value.last_name)
-            print(value.email)
-        end
-    end
+--    c = mysql.new()
+--    ok, err = c:connect({ host = '127.0.0.1', port = 3306, database = 'test', user = 'lua', password = '@Test1234' })
+--    if ok then
+--        res, err = c:query('SELECT * FROM user')
+--        for key, value in pairs(res) do
+--            print(value.name)
+--            print(value.last_name)
+--            print(value.email)
+--        end
+--    end
+--
+--    if not ok then
+--        dump(err)
+--    end
 
-    if not ok then
-        dump(err)
+    for key, value in pairs(POST_DATA) do
+        print(key)
+        print(value)
     end
 
     local b = "<h1>Hello There</h1>" ..
