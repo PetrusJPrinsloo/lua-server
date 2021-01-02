@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/PetrusJPrinsloo/lua-server/route"
 	"github.com/PetrusJPrinsloo/lua-server/services"
+	mysql "github.com/tengattack/gluasql/mysql"
 	lua "github.com/yuin/gopher-lua"
 	"log"
 	"net/http"
@@ -23,6 +24,7 @@ func Start(port string, routes []route.Route) {
 			L := lua.NewState()
 			defer L.Close()
 			L.PreloadModule("services", services.Loader)
+			L.PreloadModule("mysql", mysql.Loader)
 
 			// Process endpoint
 			switch r.Method {
@@ -61,7 +63,10 @@ func doPut(w http.ResponseWriter, r *http.Request, L *lua.LState, route route.Ro
 }
 
 func doGet(w http.ResponseWriter, r *http.Request, L *lua.LState, route route.Route) {
-	L.DoFile("app/" + route.File)
+	err := L.DoFile("app/" + route.File)
+	if err != nil {
+		log.Printf(err.Error())
+	}
 	global := L.GetGlobal("response").(*lua.LTable)
 	fmt.Fprintf(w, "%s", global.RawGetString("body").String())
 }
