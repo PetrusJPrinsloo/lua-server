@@ -30,3 +30,5 @@ response.body = b
 ```
 
 The `response.body` can be set to any string and this will be sent to the browser as html. 
+
+If data is sent to form using POST or PUT methods, the data is placed in a global table called `POST_DATA`.
