@@ -7,6 +7,7 @@
 --
 local m = require("services")
 mysql = require('mysql')
+json = require('json')
 
 function get()
 
@@ -29,6 +30,10 @@ function get()
             end
         end
 
+        mysql.close()
+
+        print(json.endcode(POST_DATA))
+
         if not ok then
             dump(err)
         end
@@ -36,6 +41,12 @@ function get()
 
     local b = "<h1>Hello There</h1>" ..
             "<p>here's a paragraph</p>" ..
+            "<form method='post' action='/user'>" ..
+            "<input type='text' name='name'>" ..
+            "<input type='text' name='last_name'>" ..
+            "<input type='text' name='email'>" ..
+            "<input type='submit'>" ..
+            "</form>" ..
             "<button>Button</button><br>" ..
             "<a href='/'>Some Link</a>"
     return b

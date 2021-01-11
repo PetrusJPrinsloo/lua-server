@@ -5,6 +5,7 @@ go 1.15
 require (
 	github.com/go-sql-driver/mysql v1.5.0 // indirect
 	github.com/junhsieh/goexamples v0.0.0-20190721045834-1c67ae74caa6 // indirect
+	github.com/layeh/gopher-json v0.0.0-20201124131017-552bb3c4c3bf
 	github.com/mattn/go-sqlite3 v1.14.6 // indirect
 	github.com/stretchr/testify v1.6.1 // indirect
 	github.com/tengattack/gluasql v0.0.0-20181229041402-2e5ed630c4cf

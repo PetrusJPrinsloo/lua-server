@@ -1,19 +1,28 @@
 package server
 
 import (
+	"bufio"
 	"fmt"
 	"github.com/PetrusJPrinsloo/lua-server/route"
 	"github.com/PetrusJPrinsloo/lua-server/services"
+	json "github.com/layeh/gopher-json"
 	mysql "github.com/tengattack/gluasql/mysql"
 	lua "github.com/yuin/gopher-lua"
+	"github.com/yuin/gopher-lua/parse"
 	"log"
 	"net/http"
+	"os"
 )
 
 func Start(port string, routes []route.Route) {
 
 	for _, route := range routes {
 		route := route
+		codeToShare, err := CompileLua("app/" + route.File)
+
+		if err != nil {
+			log.Printf(err.Error())
+		}
 
 		http.HandleFunc(route.Path, func(w http.ResponseWriter, r *http.Request) {
 			// admin
@@ -25,24 +34,25 @@ func Start(port string, routes []route.Route) {
 			defer L.Close()
 			L.PreloadModule("services", services.Loader)
 			L.PreloadModule("mysql", mysql.Loader)
+			L.PreloadModule("json", json.Loader)
 
 			// Process endpoint
 			switch r.Method {
 
 			case http.MethodGet:
-				doGet(w, r, L, route)
+				doGet(w, r, L, codeToShare)
 				break
 
 			case http.MethodPost:
-				doPost(w, r, L, route)
+				doPost(w, r, L, codeToShare)
 				break
 
 			case http.MethodPut:
-				doPut(w, r, L, route)
+				doPut(w, r, L, codeToShare)
 				break
 
 			case http.MethodDelete:
-				doDelete(w, r, L, route)
+				doDelete(w, r, L, codeToShare)
 				break
 
 			default:
@@ -54,16 +64,40 @@ func Start(port string, routes []route.Route) {
 	log.Fatal(http.ListenAndServe(":"+port, nil))
 }
 
-func doFile(w http.ResponseWriter, L *lua.LState, route route.Route) {
-	err := L.DoFile("app/" + route.File)
+// CompileLua reads the passed lua file from disk and compiles it.
+func CompileLua(filePath string) (*lua.FunctionProto, error) {
+	file, err := os.Open(filePath)
+	defer file.Close()
 	if err != nil {
-		log.Printf(err.Error())
+		return nil, err
 	}
+	reader := bufio.NewReader(file)
+	chunk, err := parse.Parse(reader, filePath)
+	if err != nil {
+		return nil, err
+	}
+	proto, err := lua.Compile(chunk, filePath)
+	if err != nil {
+		return nil, err
+	}
+	return proto, nil
+}
+
+// DoCompiledFile takes a FunctionProto, as returned by CompileLua, and runs it in the LState. It is equivalent
+// to calling DoFile on the LState with the original source file.
+func DoCompiledFile(L *lua.LState, proto *lua.FunctionProto) error {
+	lfunc := L.NewFunctionFromProto(proto)
+	L.Push(lfunc)
+	return L.PCall(0, lua.MultRet, nil)
+}
+
+func doFile(w http.ResponseWriter, L *lua.LState, proto *lua.FunctionProto) {
+	DoCompiledFile(L, proto)
 	global := L.GetGlobal("response").(*lua.LTable)
 	fmt.Fprintf(w, "%s", global.RawGetString("body").String())
 }
 
-func doPost(w http.ResponseWriter, r *http.Request, L *lua.LState, route route.Route) {
+func doPost(w http.ResponseWriter, r *http.Request, L *lua.LState, proto *lua.FunctionProto) {
 
 	table := L.NewTable()
 
@@ -79,17 +113,17 @@ func doPost(w http.ResponseWriter, r *http.Request, L *lua.LState, route route.R
 	}
 	L.SetGlobal("POST_DATA", table)
 
-	doFile(w, L, route)
+	doFile(w, L, proto)
 }
 
-func doPut(w http.ResponseWriter, r *http.Request, L *lua.LState, route route.Route) {
-	doPost(w, r, L, route)
+func doPut(w http.ResponseWriter, r *http.Request, L *lua.LState, proto *lua.FunctionProto) {
+	doPost(w, r, L, proto)
 }
 
-func doGet(w http.ResponseWriter, r *http.Request, L *lua.LState, route route.Route) {
-	doFile(w, L, route)
+func doGet(w http.ResponseWriter, r *http.Request, L *lua.LState, proto *lua.FunctionProto) {
+	doFile(w, L, proto)
 }
 
-func doDelete(w http.ResponseWriter, r *http.Request, L *lua.LState, route route.Route) {
-	doGet(w, r, L, route)
+func doDelete(w http.ResponseWriter, r *http.Request, L *lua.LState, proto *lua.FunctionProto) {
+	doGet(w, r, L, proto)
 }
