@@ -91,7 +91,7 @@ func DoCompiledFile(L *lua.LState, proto *lua.FunctionProto) error {
 	return L.PCall(0, lua.MultRet, nil)
 }
 
-func doFile(w http.ResponseWriter, L *lua.LState, proto *lua.FunctionProto) {
+func doFile(w http.ResponseWriter, L *lua.LState, proto *lua.FunctionProto, method string) {
 	DoCompiledFile(L, proto)
 	global := L.GetGlobal("response").(*lua.LTable)
 	fmt.Fprintf(w, "%s", global.RawGetString("body").String())
@@ -113,7 +113,7 @@ func doPost(w http.ResponseWriter, r *http.Request, L *lua.LState, proto *lua.Fu
 	}
 	L.SetGlobal("POST_DATA", table)
 
-	doFile(w, L, proto)
+	doFile(w, L, proto, "post")
 }
 
 func doPut(w http.ResponseWriter, r *http.Request, L *lua.LState, proto *lua.FunctionProto) {
@@ -121,7 +121,7 @@ func doPut(w http.ResponseWriter, r *http.Request, L *lua.LState, proto *lua.Fun
 }
 
 func doGet(w http.ResponseWriter, r *http.Request, L *lua.LState, proto *lua.FunctionProto) {
-	doFile(w, L, proto)
+	doFile(w, L, proto, "")
 }
 
 func doDelete(w http.ResponseWriter, r *http.Request, L *lua.LState, proto *lua.FunctionProto) {

@@ -9,8 +9,15 @@
 local m = require("modules")
 
 routes = {
-    index = "/",
-    user = "/user"
+    {
+        index = "/",
+        method = "GET",
+
+    },
+    {
+        user = "/user/{id}",
+        method = "GET"
+    }
 }
 
-m.startServer('8080')
+m.startServer('9090')
